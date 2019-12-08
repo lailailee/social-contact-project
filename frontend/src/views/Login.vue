@@ -50,7 +50,12 @@
                     </ValidationProvider>
                   </div>
                   <div class="layui-form-item">
-                    <ValidationProvider name="code" rules="required|length:4" v-slot="{errors}">
+                    <ValidationProvider
+                      name="code"
+                      ref="codefield"
+                      rules="required|length:4"
+                      v-slot="{errors}"
+                    >
                       <div class="layui-row">
                         <label for="L_vercode" class="layui-form-label">验证码</label>
                         <div class="layui-input-inline">
@@ -123,6 +128,7 @@ export default {
     ValidationObserver
   },
   mounted () {
+    window.vue = this
     let sid = ''
     if (localStorage.getItem('sid')) {
       sid = localStorage.getItem('sid')
@@ -131,11 +137,11 @@ export default {
       localStorage.setItem('sid', sid)
     }
     this.$store.commit('setSid', sid)
-    console.log(sid)
-    this._getCode(sid)
+    this._getCode()
   },
   methods: {
-    _getCode (sid) {
+    _getCode () {
+      let sid = this.$store.state.sid
       getCode(sid).then((res) => {
         console.log(res)
         if (res.code === 200) {
@@ -144,7 +150,6 @@ export default {
       })
     },
     async submit () {
-      console.log('submit event!')
       const isValid = await this.$refs.observer.validate()
       if (!isValid) {
         return
@@ -153,11 +158,29 @@ export default {
         username: this.username,
         password: this.password,
         code: this.code,
-        svg: this.svg
+        sid: this.$store.state.sid
       }).then(res => {
         if (res.code === 200) {
+          this.username = ''
+          this.password = ''
+          this.code = ''
+          requestAnimationFrame(() => {
+            this.refs.observer.reset()
+          })
           console.log(res)
+        } else if (res.code === 401) {
+          this.$refs.codefield.setErrors([res.msg])
+        } else {
+          this.$alert('用户名密码校验失败,请检查!')
         }
+      }).catch(err => {
+        const data = err.response.data
+        if (data.code === 500) {
+          this.$alert('用户名密码校验失败,请检查!')
+        } else {
+          this.$alert('服务器错误')
+        }
+        console.log(err)
       })
     }
   }

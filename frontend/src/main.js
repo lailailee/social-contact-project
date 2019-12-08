@@ -6,7 +6,8 @@ import store from './store'
 import axios from 'axios'
 
 import '@/util/veevalidate-i18n.js'
-
+import Alert from '@/components/modules/alert'
+Vue.use(Alert)
 Vue.config.productionTip = false
 
 axios.defaults.baseURL =
