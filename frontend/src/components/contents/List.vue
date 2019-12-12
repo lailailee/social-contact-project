@@ -27,7 +27,7 @@ export default {
   data () {
     return {
       isEnd: false,
-      isRepeat: false,
+      current: '',
       status: '',
       tag: '',
       sort: 'created',
@@ -40,13 +40,38 @@ export default {
   components: {
     ListItem
   },
+  watch: {
+    current (newVal, odlVal) {
+      this.page = 0
+      this.lists = []
+      this.isEnd = false
+      this._getList()
+      this.init()
+    },
+    '$route' (newVal, odlVal) {
+      let catalog = this.$route.params['catalog']
+      if (typeof catalog !== 'undefined' && catalog !== '') {
+        this.catalog = catalog
+      }
+      this.init()
+    }
+  },
   mounted () {
+    let catalog = this.$route.params['catalog']
+    if (typeof catalog !== 'undefined' && catalog !== '') {
+      this.catalog = catalog
+    }
     this._getList()
   },
   methods: {
+    init () {
+      this.page = 0
+      this.lists = []
+      this.isEnd = false
+      this._getList()
+    },
     _getList () {
       if (this.isEnd) return
-      // this.isRepeat = true
       let options = {
         catalog: this.catalog,
         isTop: 0,
@@ -58,21 +83,20 @@ export default {
       getList(options).then(res => {
         console.log(res)
         // 加入请求锁
-        // this.isRepeat = true
         // this.lists = res.data
         // 对于异常的判断 res.code 非200,我们给用户一个提示
         // 判断lists长度是否为0,如果为0可以直接覆盖
         // 当list的长度不为0,后面请求的数据直接加入到lists
-        // if (res.code === 200) {
-        //   if (this.lists.length < this.limit) {
-        //     this.isEnd = true
-        //   }
-        //   if (this.lists.length === 0) {
-        //     this.lists = res.data
-        //   } else {
-        //     this.lists = this.lists.concat(res.data)
-        //   }
-        // }
+        if (res.code === 200) {
+          if (this.lists.length < this.limit) {
+            this.isEnd = true
+          }
+          if (this.lists.length === 0) {
+            this.lists = res.data
+          } else {
+            this.lists = this.lists.concat(res.data)
+          }
+        }
       }).catch(err => {
         if (err) {
           this.$alert(err.message)
@@ -80,10 +104,15 @@ export default {
       })
     },
     nextPage () {
-      // this.page++
+      this.page++
       this._getList()
     },
     search (val) {
+      if (typeof val === 'undefined' && this.current === '') {
+        return
+      }
+      this.current = val
+      console.log(val)
       switch (val) {
         case 0 :
           this.status = '0'
@@ -106,6 +135,7 @@ export default {
         default :
           this.status = ''
           this.tag = ''
+          this.current = ''
           break
       }
     }

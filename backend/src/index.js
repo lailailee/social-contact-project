@@ -14,7 +14,7 @@ import errorHandle from './common/ErrorHandle'
 
 const app = new koa()
 
-const isDevMode = process.env.NODE_ENV === 'production' ? false : true
+const isDevMode = process.env.NODE_ENV !== 'production'
 
 const jwt = JWT({ secret: config.JWR_SECRET }).unless({ path: [/^\/public/, /^\/login/] })
 /**

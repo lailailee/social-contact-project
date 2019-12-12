@@ -3,45 +3,45 @@ import moment from 'moment'
 import bcrypt from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 import config from '../config'
-import { checkCode } from "@/common/Utils"
-import User from "@/model/User"
+import { checkCode } from '@/common/Utils'
+import User from '@/model/User'
 // const bcrypt = require('bcryptjs');
 
 class LoginController {
-  constructor() { }
-  async forget(ctx) {
+  async forget (ctx) {
     const { body } = ctx.request
     console.log(body)
     try {
       // body.username -> database -> email
-      let result = await send({
+      const result = await send({
         code: '1234',
         expire: moment()
           .add(30, 'minutes')
           .format('YYYY-MM-DD HH:mm:ss'),
         email: body.username,
-        user: 'Brian',
+        user: 'Brian'
       })
       ctx.body = {
         code: 200,
         data: result,
-        msg: '邮件发送成功',
+        msg: '邮件发送成功'
       }
     } catch (e) {
       console.log(e)
     }
   }
-  async login(ctx) {
+
+  async login (ctx) {
     // 接收用户的数据
     const { body } = ctx.request
-    let { sid, code } = body
-    let result = await checkCode(sid, code)
+    const { sid, code } = body
+    const result = await checkCode(sid, code)
     // 验证图片验证码的正确性和实效性
     if (result) {
       // 验证用户账号密码是否正确
       // mongoDB查库
       let checkUserPassword = false
-      let user = await User.findOne({ username: body.username })
+      const user = await User.findOne({ username: body.username })
       if (user === null) {
         ctx.body = {
           code: 404,
@@ -53,7 +53,7 @@ class LoginController {
       }
       if (checkUserPassword) {
         // 验证通过
-        let token = jsonwebtoken.sign({ _id: "lailailee" }, config.JWR_SECRET, {
+        const token = jsonwebtoken.sign({ _id: 'lailailee' }, config.JWR_SECRET, {
           expiresIn: '1d'
         })
         // 返回token
@@ -65,36 +65,36 @@ class LoginController {
         // 用户名密码验证失败
         ctx.body = {
           code: 404,
-          msg: "用户名密码错误"
+          msg: '用户名密码错误'
         }
       }
     } else {
       // 图片验证码验证失败
       ctx.body = {
         code: 401,
-        msg: "图片验证码不正确,请检查!"
+        msg: '图片验证码不正确,请检查!'
       }
     }
-
   }
-  async reg(ctx) {
+
+  async reg (ctx) {
     // 接收客户端的数据
     const { body } = ctx.request
     // 校验验证码的内容（时效性、有效性）
-    let sid = body.sid
-    let code = body.code
-    let msg = {}
+    const sid = body.sid
+    const code = body.code
+    const msg = {}
     // 验证图片验证码的时效性、正确性
-    let result = await checkCode(sid, code)
+    const result = await checkCode(sid, code)
     let check = true
     if (result) {
       // 查库，看username是否被注册
-      let user1 = await User.findOne({ username: body.username })
+      const user1 = await User.findOne({ username: body.username })
       if (user1 !== null && typeof user1.username !== 'undefined') {
         msg.username = ['此邮箱已经注册，可以通过邮箱找回密码']
         check = false
       }
-      let user2 = await User.findOne({ name: body.name })
+      const user2 = await User.findOne({ name: body.name })
       // 查库，看name是否被注册
       if (user2 !== null && typeof user2.name !== 'undefined') {
         msg.name = ['此昵称已经被注册，请修改']
@@ -103,13 +103,13 @@ class LoginController {
       // 写入数据到数据库
       if (check) {
         body.password = await bcrypt.hash(body.password, 5)
-        let user = new User({
+        const user = new User({
           username: body.username,
           name: body.name,
           password: body.password,
           created: moment().format('YYYY-MM-DD HH:mm:ss')
         })
-        let result = await user.save()
+        const result = await user.save()
         ctx.body = {
           code: 200,
           data: result,
