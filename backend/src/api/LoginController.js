@@ -1,5 +1,5 @@
 import send from '../config/MailConfig'
-import moment from 'moment'
+import moment from 'dayjs'
 import bcrypt from 'bcryptjs'
 import jsonwebtoken from 'jsonwebtoken'
 import config from '../config'
@@ -100,6 +100,7 @@ class LoginController {
         msg.name = ['此昵称已经被注册，请修改']
         check = false
       }
+      // check = true
       // 写入数据到数据库
       if (check) {
         body.password = await bcrypt.hash(body.password, 5)
